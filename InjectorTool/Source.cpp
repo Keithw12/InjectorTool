@@ -62,7 +62,7 @@ int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 
 	if (hProc == NULL)
 	{
-		std::cerr << "Failed to open target process" << std::endl;
+		printErr(InjectErr::OPEN_PROC);
 		return 0;
 	}
 	std::cout << "Opening Target Process.." << std::endl;
@@ -71,7 +71,7 @@ int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	LPVOID myAlloc = VirtualAllocEx(hProc, NULL, dll_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (myAlloc == NULL)
 	{
-		std::cerr << "Failed to allocate memory in Target Process." << std::endl;
+		printErr(InjectErr::VIRTUAL_ALLOC);
 		return 0;
 	}
 
@@ -79,7 +79,7 @@ int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	int rv = WriteProcessMemory(hProc, myAlloc, DLLPath.c_str(), dll_size, 0);
 	if (rv == 0)
 	{
-		std::cerr << "Failed to write in Target Process memory." << std::endl;
+		printErr(InjectErr::WRITE_PROC);
 		return 0;
 	}
 	std::cout << "Creating Remote Thread in Target Process" << std::endl;
@@ -88,20 +88,20 @@ int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	HMODULE moduleHandle = LoadLibrary("kernel32");
 	if (!moduleHandle)
 	{
-		std::cerr << "failed to get module handle of kernel32" << std::endl;
+		printErr(InjectErr::LOAD_LIB);
 		return 0;
 	}
 	FARPROC functionAddress = GetProcAddress(moduleHandle, "LoadLibraryA");
 	if (!functionAddress)
 	{
-		std::cerr << "Failed to get address of kernel32 LoadLibraryA function." << std::endl;
+		printErr(InjectErr::GET_PROC_ADDR);
 		return 0;
 	}
 	LPTHREAD_START_ROUTINE addrLoadLibrary = (LPTHREAD_START_ROUTINE)functionAddress;
 	HANDLE ThreadReturn = CreateRemoteThread(hProc, NULL, 0, addrLoadLibrary, myAlloc, 0, &dWord);
 	if (ThreadReturn == NULL)
 	{
-		std::cerr << "Fail to create Remote Thread" << std::endl;
+		printErr(InjectErr::CREATE_REMOTE_THREAD);
 		return 0;
 	}
 
