@@ -5,19 +5,14 @@
 	References:  https://github.com/saeedirha/DLL-Injector/blob/master/DLL_Injector/Source.cpp (Standard injection method)
 */
 
-#include <iostream>
 #include <Windows.h>
 #include <filesystem>
-#include <string>
 #include <charconv>
 #include <TlHelp32.h>
-#include <tchar.h>
-
-using namespace std;
+#include "proc.hpp"
 
 void PrintUsage(char* argv);
-int ProcNameToPID(const string& procName);
-int InjectDLL(const int& pid, const string& DLLPath, int method);
+int InjectDLL(const int& pid, const std::string& DLLPath, int method);
 
 int main(int argc, char **argv) {
 	if (argc != 4) {
@@ -26,26 +21,26 @@ int main(int argc, char **argv) {
 	}
 	if (!isdigit(argv[3][0]) && argv[3][0] < 2)
 	{
-		cerr << "Please provide a valid method #" << endl;
+		std::cerr << "Please provide a valid method #" << std::endl;
 		return 0;
 	}
 	int result = 0;
 	int injectMethod = atoi(argv[3]);
-	string programID = argv[1];
+	std::string programID = argv[1];
 	char DLLPath[MAX_PATH];
 	GetFullPathNameA(argv[2], MAX_PATH, DLLPath, 0);
 	// C++ 17 standard function to check if path exists
 	if (!std::filesystem::exists(DLLPath)) {
-		cerr << "Path to DLL invalid." << endl;
+		std::cerr << "Path to DLL invalid." << std::endl;
 		return 0;
 	}
 	// if number provided, it's value is stored in result.  If programID isn't a number, then result is unmodified.
 	// *p = end of given string if entire pattern matched (the entire input was a recognized number)
 	// https://en.cppreference.com/w/cpp/utility/from_chars
-	if (auto [p, ec] = from_chars(programID.data(), programID.data() + programID.size(), result);
+	if (auto [p, ec] = std::from_chars(programID.data(), programID.data() + programID.size(), result);
 		*p == '\0' && result != 0)
 	{
-		cout << "Target Process ID: " << result << endl;
+		std::cout << "Target Process ID: " << result << std::endl;
 		InjectDLL(result, DLLPath, injectMethod);
 	}
 	// user provided the image name
@@ -58,92 +53,58 @@ int main(int argc, char **argv) {
 }
 
 void PrintUsage(char *argv) {
-	cout << "Usage: " << argv << " <Process ID | Process Name> <DLL Path>" << endl;
+	std::cout << "Usage: " << argv << " <Process ID | Process Name> <DLL Path>" << std::endl;
 }
 
-int ProcNameToPID(const string& procName) {
-	// TH32CS_SNAPPROCESS ncludes all processes in the system in the snapshot
-	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	// A snapshot entry
-	PROCESSENTRY32 processSnapshot = { 0 };
-
-	processSnapshot.dwSize = sizeof(PROCESSENTRY32);
-	// error checking
-	if (snapshot == INVALID_HANDLE_VALUE) {
-		cerr << "Error in converting process name to PID.  CreateToolhelp32Snapshot returned INVALID_HANDLE_VALUE" << endl;
-		return 0;
-	}
-	
-	if (Process32First(snapshot, &processSnapshot) == FALSE) {
-		cerr << "No first entry in snapshot list" << endl;
-		CloseHandle(snapshot);
-		return 0;
-	}
-
-	do
-	{
-		if (!strcmp(processSnapshot.szExeFile, procName.c_str()))
-		{
-			CloseHandle(snapshot);
-			cout << "Process name: " << procName << endl << "Process ID: " << (processSnapshot.th32ProcessID) << endl;
-			return processSnapshot.th32ProcessID;
-		}
-	} while (Process32Next(snapshot, &processSnapshot));
-	
-	CloseHandle(snapshot);
-	cerr << "Error: Process not found" << endl;
-	return 0;
-}
-
-int InjectDLL(const int& pid, const string& DLLPath, int method) {
+int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	long dll_size = DLLPath.length() + 1;
 	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 
 	if (hProc == NULL)
 	{
-		cerr << "Failed to open target process" << endl;
+		std::cerr << "Failed to open target process" << std::endl;
 		return 0;
 	}
-	cout << "Opening Target Process.." << endl;
-
+	std::cout << "Opening Target Process.." << std::endl;
+	
 	// allocate memory in remote process' address space
 	LPVOID myAlloc = VirtualAllocEx(hProc, NULL, dll_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (myAlloc == NULL)
 	{
-		cerr << "Failed to allocate memory in Target Process." << endl;
+		std::cerr << "Failed to allocate memory in Target Process." << std::endl;
 		return 0;
 	}
 
-	cout << "Allocating memory in Target Process." << endl;
+	std::cout << "Allocating memory in Target Process." << std::endl;
 	int rv = WriteProcessMemory(hProc, myAlloc, DLLPath.c_str(), dll_size, 0);
 	if (rv == 0)
 	{
-		cerr << "Failed to write in Target Process memory." << endl;
+		std::cerr << "Failed to write in Target Process memory." << std::endl;
 		return 0;
 	}
-	cout << "Creating Remote Thread in Target Process" << endl;
+	std::cout << "Creating Remote Thread in Target Process" << std::endl;
 
 	DWORD dWord;
 	HMODULE moduleHandle = LoadLibrary("kernel32");
 	if (!moduleHandle)
 	{
-		cerr << "failed to get module handle of kernel32" << endl;
+		std::cerr << "failed to get module handle of kernel32" << std::endl;
 		return 0;
 	}
 	FARPROC functionAddress = GetProcAddress(moduleHandle, "LoadLibraryA");
 	if (!functionAddress)
 	{
-		cerr << "Failed to get address of kernel32 LoadLibraryA function." << endl;
+		std::cerr << "Failed to get address of kernel32 LoadLibraryA function." << std::endl;
 		return 0;
 	}
 	LPTHREAD_START_ROUTINE addrLoadLibrary = (LPTHREAD_START_ROUTINE)functionAddress;
 	HANDLE ThreadReturn = CreateRemoteThread(hProc, NULL, 0, addrLoadLibrary, myAlloc, 0, &dWord);
 	if (ThreadReturn == NULL)
 	{
-		cerr << "Fail to create Remote Thread" << endl;
+		std::cerr << "Fail to create Remote Thread" << std::endl;
 		return 0;
 	}
 
-	cout << "DLL Successfully Injected!" << endl;
+	std::cout << "DLL Successfully Injected!" << std::endl;
 	return 0;
 }
