@@ -1,14 +1,15 @@
 #pragma once
 
-enum class InjectErr
+enum class INJECT_ERR
 {
 	OPEN_PROC,
 	VIRTUAL_ALLOC,
 	WRITE_PROC,
 	LOAD_LIB,
 	GET_PROC_ADDR,
-	CREATE_REMOTE_THREAD
+	CREATE_REMOTE_THREAD,
+	SUCCESS
 };
 
-void printInjectErr(InjectErr err);
-int InjectDLL(const int& pid, const std::string& DLLPath, int method);
+void printInjectStatus(INJECT_ERR err);
+INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method);

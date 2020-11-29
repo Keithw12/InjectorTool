@@ -42,14 +42,14 @@ int main(int argc, char **argv) {
 		*p == '\0' && result != 0)
 	{
 		std::cout << "Target Process ID: " << result << std::endl;
-		InjectDLL(result, DLLPath, injectMethod);
+		printInjectStatus(InjectDLL(result, DLLPath, injectMethod));
 	}
 	// user provided the image name
 	else {
 		if (int progPID = ProcNameToPID(programID); progPID)
 		{
-			InjectDLL(progPID, DLLPath, injectMethod);
-		}		
+			printInjectStatus(InjectDLL(progPID, DLLPath, injectMethod));
+		}
 	}
 }
 
