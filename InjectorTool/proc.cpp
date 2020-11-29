@@ -36,30 +36,3 @@ int ProcNameToPID(const std::string& procName) {
 	std::cerr << "Error: Process not found" << std::endl;
 	return 0;
 }
-
-void printErr(InjectErr err)
-{
-	switch (err)
-	{
-	case InjectErr::OPEN_PROC:
-		std::cerr << "Failed to get a handle to the Target Process." << std::endl;
-		break;
-	case InjectErr::VIRTUAL_ALLOC:
-		std::cerr << "Failed to allocate memory in Target Process." << std::endl;
-		break;
-	case InjectErr::WRITE_PROC:
-		std::cerr << "Failed to write in Target Process memory." << std::endl;
-		break;
-	case InjectErr::LOAD_LIB:
-		std::cerr << "failed to get module handle." << std::endl;
-		break;
-	case InjectErr::GET_PROC_ADDR:
-		std::cerr << "Failed to get address of function." << std::endl;
-		break;
-	case InjectErr::CREATE_REMOTE_THREAD:
-		std::cerr << "Fail to create Remote Thread" << std::endl;
-		break;
-	default:
-		break;
-	}
-}

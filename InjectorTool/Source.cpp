@@ -5,14 +5,15 @@
 	References:  https://github.com/saeedirha/DLL-Injector/blob/master/DLL_Injector/Source.cpp (Standard injection method)
 */
 
+#include <iostream>
 #include <Windows.h>
 #include <filesystem>
 #include <charconv>
 #include <TlHelp32.h>
 #include "proc.hpp"
+#include "inject.hpp"
 
 void PrintUsage(char* argv);
-int InjectDLL(const int& pid, const std::string& DLLPath, int method);
 
 int main(int argc, char **argv) {
 	if (argc != 4) {
@@ -54,57 +55,4 @@ int main(int argc, char **argv) {
 
 void PrintUsage(char *argv) {
 	std::cout << "Usage: " << argv << " <Process ID | Process Name> <DLL Path>" << std::endl;
-}
-
-int InjectDLL(const int& pid, const std::string& DLLPath, int method) {
-	long dll_size = DLLPath.length() + 1;
-	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-
-	if (hProc == NULL)
-	{
-		printErr(InjectErr::OPEN_PROC);
-		return 0;
-	}
-	std::cout << "Opening Target Process.." << std::endl;
-	
-	// allocate memory in remote process' address space
-	LPVOID myAlloc = VirtualAllocEx(hProc, NULL, dll_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	if (myAlloc == NULL)
-	{
-		printErr(InjectErr::VIRTUAL_ALLOC);
-		return 0;
-	}
-
-	std::cout << "Allocating memory in Target Process." << std::endl;
-	int rv = WriteProcessMemory(hProc, myAlloc, DLLPath.c_str(), dll_size, 0);
-	if (rv == 0)
-	{
-		printErr(InjectErr::WRITE_PROC);
-		return 0;
-	}
-	std::cout << "Creating Remote Thread in Target Process" << std::endl;
-
-	DWORD dWord;
-	HMODULE moduleHandle = LoadLibrary("kernel32");
-	if (!moduleHandle)
-	{
-		printErr(InjectErr::LOAD_LIB);
-		return 0;
-	}
-	FARPROC functionAddress = GetProcAddress(moduleHandle, "LoadLibraryA");
-	if (!functionAddress)
-	{
-		printErr(InjectErr::GET_PROC_ADDR);
-		return 0;
-	}
-	LPTHREAD_START_ROUTINE addrLoadLibrary = (LPTHREAD_START_ROUTINE)functionAddress;
-	HANDLE ThreadReturn = CreateRemoteThread(hProc, NULL, 0, addrLoadLibrary, myAlloc, 0, &dWord);
-	if (ThreadReturn == NULL)
-	{
-		printErr(InjectErr::CREATE_REMOTE_THREAD);
-		return 0;
-	}
-
-	std::cout << "DLL Successfully Injected!" << std::endl;
-	return 0;
 }
