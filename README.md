@@ -1,8 +1,24 @@
-# InjectorTool
-An injector that uses the standard LoadLibrary method to inject a DLL into a target's virtual address space.
+# Max Injector
 
-Usage:  Injector.exe <Process ID | Process Name> <DLL Path>  (Note:  Full path must be given)
+### Loads a given module into the target's address spaceAn injector that currently uses the standard LoadLibrary method to inject a DLL into a target's virtual address space.
 
+## Features
+ - Standard Injection (LoadLibrary method)
+ 
+**Planned Features**
+ - Injection methods:  LdrLoadDll Stub, LdrpLoadDll Stub, Thread Hijacking and Manual Map
+
+## Usage
+
+Command line
+```
+  Injector.exe <Process ID | Process Name> <DLL Path>  (Note:  Full path must be given)
+```
+
+## Compatibility
+Compile as x86 for 32-Bit and x64 for 64-Bit process injection
+
+## Explanation of methods
 How the injection works:
 
 Process handle is obtained through a returned handle from OpenProcess.
