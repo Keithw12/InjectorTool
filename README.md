@@ -3,9 +3,10 @@
 ### Loads a given module into the target's address spaceAn injector that currently uses the standard LoadLibrary method to inject a DLL into a target's virtual address space.
 
 ## Features
+**Current**
  - Standard Injection (LoadLibrary method)
  
-**Planned Features**
+**Planned**
  - Injection methods:  LdrLoadDll Stub, LdrpLoadDll Stub, Thread Hijacking and Manual Map
 
 ## Usage
