@@ -7,7 +7,7 @@
  - Standard Injection (LoadLibrary method)
  
 **Planned**
- - Injection methods:  LdrLoadDll Stub, LdrpLoadDll Stub, Thread Hijacking and Manual Map
+ - Injection methods:  LdrLoadDll Stub, LdrpLoadDll Stub, Thread Hijacking, Manual Map, IAT Hooking
 
 ## Usage
 
