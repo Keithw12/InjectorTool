@@ -11,5 +11,5 @@ enum class INJECT_ERR
 	SUCCESS
 };
 
-void printInjectStatus(INJECT_ERR err);
-INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method);
+void		printInjectStatus(INJECT_ERR err);
+INJECT_ERR	InjectDLL(const int& pid, const std::string& DLLPath, int method);

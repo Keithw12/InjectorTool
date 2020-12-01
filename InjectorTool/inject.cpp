@@ -3,6 +3,37 @@
 #include <Windows.h>
 #include "inject.hpp"
 
+void printInjectStatus(INJECT_ERR err)
+{
+	DWORD Err = GetLastError();
+	switch (err)
+	{
+	case INJECT_ERR::OPEN_PROC:
+		std::cerr << "OpenProcess failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::VIRTUAL_ALLOC:
+		std::cerr << "VirtualAllocEx failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::WRITE_PROC:
+		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::LOAD_LIB:
+		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::GET_PROC_ADDR:
+		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::CREATE_REMOTE_THREAD:
+		std::cerr << "CreateRemoteThread failed: 0x" << std::hex << Err << std::endl;
+		break;
+	case INJECT_ERR::SUCCESS:
+		std::cout << "DLL Successfully Injected!" << std::endl;
+		break;
+	default:
+		break;
+	}
+}
+
 INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	long dll_size = DLLPath.length() + 1;
 	
@@ -26,18 +57,19 @@ INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 
 	// write the DLL path into the allocated memory in our target
 	std::cout << "Writing DLL path into allocated memory.." << std::endl;
-	int rv = WriteProcessMemory(hProc, myAlloc, DLLPath.c_str(), dll_size, 0);
-	if (rv == 0)
+	if (!WriteProcessMemory(hProc, myAlloc, DLLPath.c_str(), dll_size, 0))
 	{
+		VirtualFreeEx(hProc, myAlloc, dll_size, MEM_FREE);
 		CloseHandle(hProc);
 		return INJECT_ERR::WRITE_PROC;
 	}
-	
+
 	// Create thread in target process that executes LoadLibraryA
 	std::cout << "Creating Remote Thread in target Process.." << std::endl;
 	HANDLE ThreadReturn = CreateRemoteThread(hProc, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, myAlloc, 0, 0);
 	if (ThreadReturn == NULL)
 	{
+		VirtualFreeEx(hProc, myAlloc, dll_size, MEM_FREE);
 		CloseHandle(hProc);
 		return INJECT_ERR::CREATE_REMOTE_THREAD;
 	}
@@ -45,34 +77,4 @@ INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	CloseHandle(hProc);
 	CloseHandle(ThreadReturn);
 	return INJECT_ERR::SUCCESS;
-}
-
-void printInjectStatus(INJECT_ERR err)
-{
-	switch (err)
-	{
-	case INJECT_ERR::OPEN_PROC:
-		std::cerr << "Failed to get a handle to the Target Process." << std::endl;
-		break;
-	case INJECT_ERR::VIRTUAL_ALLOC:
-		std::cerr << "Failed to allocate memory in Target Process." << std::endl;
-		break;
-	case INJECT_ERR::WRITE_PROC:
-		std::cerr << "Failed to write in Target Process memory." << std::endl;
-		break;
-	case INJECT_ERR::LOAD_LIB:
-		std::cerr << "failed to get module handle." << std::endl;
-		break;
-	case INJECT_ERR::GET_PROC_ADDR:
-		std::cerr << "Failed to get address of function." << std::endl;
-		break;
-	case INJECT_ERR::CREATE_REMOTE_THREAD:
-		std::cerr << "Fail to create Remote Thread" << std::endl;
-		break;
-	case INJECT_ERR::SUCCESS:
-		std::cout << "DLL Successfully Injected!" << std::endl;
-		break;
-	default:
-		break;
-	}
 }
