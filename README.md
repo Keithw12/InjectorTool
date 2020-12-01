@@ -27,8 +27,16 @@ Command line
   * Platform Toolset: VS 2019 (v142)
 
 ## Explanation of methods
-**Standard**
+**Standard (windows loader)**
 1. Get handle to target via OpenProcess
 1. Allocate memory in target via VirtualAllocEx
 1. Write DLL Path to allocated memory via WriteProcessMemory
-1. Create thread in target process via CreateRemoteThreadEx that executes LoadLibraryA with DLL path as parameter
+1. Create thread in target process via CreateRemoteThreadEx that executes LoadLibrary with DLL path as parameter
+
+**Manual Map (custom loader/ does all the steps LoadLibrary does, but manually)**
+1. Load module as raw data into injector process
+1. Map sections of module into target process
+1. Inject loader shellcode
+1. Shellcode will relocate DLL, fix imports, execute TLS callbacks, and then call DllMain
+
+[Reference](https://www.youtube.com/watch?v=qzZTXcBu3cE&t=87s)
