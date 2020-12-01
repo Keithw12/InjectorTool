@@ -1,6 +1,6 @@
 # Max Injector
 
-### Loads a module into the target's address space
+### Loads and executes a module in the target's address space
 
 ## Features
 **Current**
