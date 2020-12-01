@@ -1,7 +1,7 @@
 /*
 	Author:  Keith Wilcox
 	Purpose:  Used to inject user's code which is executed in the target's address space.
-	Date:  11/22/2020
+	First Commit Date:  11/22/2020
 	References:  https://github.com/saeedirha/DLL-Injector/blob/master/DLL_Injector/Source.cpp (Standard injection method)
 */
 
@@ -13,11 +13,15 @@
 #include "proc.hpp"
 #include "inject.hpp"
 
-void PrintUsage(char* argv);
-
+/// <summary>
+/// Usage:  Injector.exe [ [Process ID] | [Process Name] ] [DLL Path]  (Note:  Full path must be given) 
+/// </summary>
+/// <param name="argc">Number of arguments</param>
+/// <param name="argv">Arguments passed</param>
+/// <returns></returns>
 int main(int argc, char **argv) {
 	if (argc != 4) {
-		PrintUsage(argv[0]);
+		std::cout << "Usage: " << argv[0] << " <Process ID | Process Name> <DLL Path>" << std::endl;
 		return 0;
 	}
 	if (!isdigit(argv[3][0]) && argv[3][0] < 2)
@@ -31,7 +35,8 @@ int main(int argc, char **argv) {
 	char DLLPath[MAX_PATH];
 	GetFullPathNameA(argv[2], MAX_PATH, DLLPath, 0);
 	// C++ 17 standard function to check if path exists
-	if (!std::filesystem::exists(DLLPath)) {
+	if (!std::filesystem::exists(DLLPath))
+	{
 		std::cerr << "Path to DLL invalid." << std::endl;
 		return 0;
 	}
@@ -42,17 +47,14 @@ int main(int argc, char **argv) {
 		*p == '\0' && result != 0)
 	{
 		std::cout << "Target Process ID: " << result << std::endl;
-		printInjectStatus(InjectDLL(result, DLLPath, injectMethod));
+		InjectStatus(InjectDLL(result, DLLPath, injectMethod));
 	}
 	// user provided the image name
-	else {
+	else
+	{
 		if (int progPID = ProcNameToPID(programID); progPID)
 		{
-			printInjectStatus(InjectDLL(progPID, DLLPath, injectMethod));
+			InjectStatus(InjectDLL(progPID, DLLPath, injectMethod));
 		}
 	}
-}
-
-void PrintUsage(char *argv) {
-	std::cout << "Usage: " << argv << " <Process ID | Process Name> <DLL Path>" << std::endl;
 }

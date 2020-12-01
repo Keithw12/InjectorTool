@@ -3,6 +3,11 @@
 #include <TlHelp32.h>
 #include "proc.hpp"
 
+/// <summary>
+/// Takes a running process' name and returns a PID
+/// </summary>
+/// <param name="procName">Process name</param>
+/// <returns>Process ID</returns>
 int ProcNameToPID(const std::string& procName) {
 	// TH32CS_SNAPPROCESS ncludes all processes in the system in the snapshot
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);

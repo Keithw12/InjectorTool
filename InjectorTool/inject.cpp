@@ -3,7 +3,11 @@
 #include <Windows.h>
 #include "inject.hpp"
 
-void printInjectStatus(INJECT_ERR err)
+/// <summary>
+/// Prints failure code from GetLastError or success msg
+/// </summary>
+/// <param name="err">the function that failed</param>
+void InjectStatus(INJECT_ERR err)
 {
 	DWORD Err = GetLastError();
 	switch (err)
@@ -17,12 +21,6 @@ void printInjectStatus(INJECT_ERR err)
 	case INJECT_ERR::WRITE_PROC:
 		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
 		break;
-	case INJECT_ERR::LOAD_LIB:
-		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
-		break;
-	case INJECT_ERR::GET_PROC_ADDR:
-		std::cerr << "WriteProcessMemory failed: 0x" << std::hex << Err << std::endl;
-		break;
 	case INJECT_ERR::CREATE_REMOTE_THREAD:
 		std::cerr << "CreateRemoteThread failed: 0x" << std::hex << Err << std::endl;
 		break;
@@ -34,6 +32,13 @@ void printInjectStatus(INJECT_ERR err)
 	}
 }
 
+/// <summary>
+/// Injects a DLL into the specified target
+/// </summary>
+/// <param name="pid">Process ID</param>
+/// <param name="DLLPath">Full path of DLL</param>
+/// <param name="method">Injection method</param>
+/// <returns></returns>
 INJECT_ERR InjectDLL(const int& pid, const std::string& DLLPath, int method) {
 	long dll_size = DLLPath.length() + 1;
 	
