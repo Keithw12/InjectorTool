@@ -17,7 +17,14 @@ Command line
 ```
 
 ## Compatibility
-Compile as x86 for 32-Bit and x64 for 64-Bit process injection
+* Project settings:
+  * Platform x86 for 32-Bit injection (requires 32-bit module)
+  * Platform x64 for 64-Bit injection (requires 64-bit module)
+    *A 64-bit module cannot be loaded or mapped into a 32-bit process' address space, vice-versa.
+  * Multi-byte Character Set
+  * ISO C++ 17 Language Standard
+  * C Language Standard: Default
+  * Platform Toolset: VS 2019 (v142)
 
 ## Explanation of methods
 **Standard**
